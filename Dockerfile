@@ -1,18 +1,34 @@
-# ── Stage 1: Install production dependencies ───────────────────────────────────
-FROM node:20-alpine AS deps
+# ── Stage 1: Build the React frontend ─────────────────────────────────────────
+FROM node:20-alpine AS builder
 WORKDIR /app
 
+# Install ALL deps (including Vite which is a devDependency)
+COPY package*.json ./
+RUN npm ci
+
+# Copy source and build
+COPY . .
+RUN npm run build
+
+# ── Stage 2: Install production-only dependencies ──────────────────────────────
+FROM node:20-alpine AS deps
+WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# ── Stage 2: Production image ──────────────────────────────────────────────────
+# ── Stage 3: Production image ──────────────────────────────────────────────────
 FROM node:20-alpine AS production
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy only what's needed
+# Copy production node_modules
 COPY --from=deps /app/node_modules ./node_modules
+
+# Copy built React frontend
+COPY --from=builder /app/dist ./dist
+
+# Copy backend source
 COPY src ./src
 COPY db ./db
 COPY knexfile.js ./
