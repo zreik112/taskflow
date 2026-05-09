@@ -86,11 +86,30 @@ app.use('/api/projects', projectsRouter);
 
 // Serve React frontend in production
 if (process.env.NODE_ENV === 'production') {
+  const fs = require('fs');
   const distPath = path.join(__dirname, '..', 'dist');
+  const indexPath = path.join(distPath, 'index.html');
+
+  // Log dist contents at startup so we can verify in Render logs
+  if (fs.existsSync(distPath)) {
+    const top = fs.readdirSync(distPath);
+    const assets = fs.existsSync(path.join(distPath, 'assets'))
+      ? fs.readdirSync(path.join(distPath, 'assets'))
+      : [];
+    logger.info({ distPath, top, assets }, 'Serving static files from dist/');
+  } else {
+    logger.error({ distPath }, 'dist/ folder NOT FOUND — frontend will not be served');
+  }
+
   app.use(express.static(distPath));
-  // SPA fallback — all non-API routes serve index.html
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
+
+  // SPA fallback — client-side routes return index.html
+  app.get('*', (req, res, next) => {
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      next({ status: 503, error: 'not_built', message: 'Frontend not built' });
+    }
   });
 }
 

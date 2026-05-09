@@ -6,9 +6,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-# Copy source and build
+# Copy source files and build
 COPY . .
 RUN npm run build
+
+# Verify the build produced the expected output — fails loudly if missing
+RUN ls -la dist/ && ls -la dist/assets/
 
 # ── Stage 2: Install production-only dependencies ──────────────────────────────
 FROM node:20-alpine AS deps
