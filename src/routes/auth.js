@@ -2,6 +2,7 @@ const express = require('express');
 const Joi = require('joi');
 const router = express.Router();
 const { validate } = require('../middleware/validate');
+const authenticate = require('../middleware/authenticate');
 const controller = require('../features/auth/controller');
 
 const registerSchema = Joi.object({
@@ -20,5 +21,6 @@ const loginSchema = Joi.object({
 router.post('/register', validate(registerSchema), controller.register);
 router.post('/login', validate(loginSchema), controller.login);
 router.post('/logout', controller.logout);
+router.get('/me', authenticate, (req, res) => res.json({ user: req.user }));
 
 module.exports = router;

@@ -5,8 +5,8 @@ services:
     plan: free
     region: oregon
 
-    # Build: install production deps only
-    buildCommand: npm ci --omit=dev
+    # Build: install all deps (incl. Vite), build React frontend, then prune devDeps
+    buildCommand: npm ci && npm run build && npm prune --omit=dev
 
     # Pre-deploy: run DB migrations before traffic switches over
     preDeployCommand: node_modules/.bin/knex migrate:latest

@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -9,6 +10,7 @@ const logger = require('./logger');
 
 const authRouter = require('./routes/auth');
 const tasksRouter = require('./routes/tasks');
+const projectsRouter = require('./routes/projects');
 const { errorHandler } = require('./middleware/error-handler');
 
 const app = express();
@@ -50,20 +52,6 @@ const authLimiter = rateLimit({
   },
 });
 
-// Root — API info
-app.get('/', (req, res) => {
-  res.json({
-    name: 'TaskFlow API',
-    version: '1.0.0',
-    status: 'running',
-    endpoints: {
-      health: 'GET /healthz',
-      auth: 'POST /api/auth/register  |  POST /api/auth/login  |  POST /api/auth/logout',
-      tasks: 'GET /api/tasks  |  POST /api/tasks  |  GET /api/tasks/:id',
-    },
-  });
-});
-
 // Health check — verifies DB connectivity
 app.get('/healthz', async (req, res) => {
   try {
@@ -77,6 +65,17 @@ app.get('/healthz', async (req, res) => {
 
 app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/tasks', tasksRouter);
+app.use('/api/projects', projectsRouter);
+
+// Serve React frontend in production
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '..', 'dist');
+  app.use(express.static(distPath));
+  // SPA fallback — all non-API routes serve index.html
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // Error handler must be mounted last
 app.use(errorHandler);
