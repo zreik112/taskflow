@@ -9,6 +9,7 @@
     "test": "cross-env NODE_ENV=test jest --forceExit",
     "test:verbose": "cross-env NODE_ENV=test jest --forceExit --verbose",
     "migrate": "knex migrate:latest",
+    "migrate:prod": "cross-env NODE_ENV=production knex migrate:latest",
     "migrate:test": "cross-env NODE_ENV=test knex migrate:latest",
     "seed": "knex seed:run",
     "rollback": "knex migrate:rollback --all"

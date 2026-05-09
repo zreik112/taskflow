@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: taskflow-api
+    runtime: node
+    plan: free
+    region: oregon
+
+    # Build: install production deps only
+    buildCommand: npm ci --omit=dev
+
+    # Pre-deploy: run DB migrations before traffic switches over
+    preDeployCommand: node_modules/.bin/knex migrate:latest
+
+    # Start the API
+    startCommand: node src/app.js
+
+    # Render health-check — must return 2xx
+    healthCheckPath: /healthz
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 4000
+
+      # Set these in the Render dashboard → Environment tab:
+      #   JWT_SECRET        → generate with: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+      #   DATABASE_URL      → copy the "Internal Database URL" from your Render PostgreSQL service
+      #   CORS_ORIGIN       → your frontend URL (or http://localhost:5173 while testing)
+      #   BCRYPT_ROUNDS     → 12
+      #   LOG_LEVEL         → info
