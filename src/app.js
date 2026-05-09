@@ -15,8 +15,25 @@ const { errorHandler } = require('./middleware/error-handler');
 
 const app = express();
 
-// Security headers
-app.use(helmet());
+// Security headers — CSP tuned for Vite-built React (self-hosted JS/CSS + Google Fonts)
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
+        fontSrc: ["'self'", 'https:', 'data:'],
+        imgSrc: ["'self'", 'data:'],
+        connectSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'self'"],
+      },
+    },
+  })
+);
 
 // CORS — credentials must be true for httpOnly cookie flow
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',');
