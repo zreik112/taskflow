@@ -50,6 +50,20 @@ const authLimiter = rateLimit({
   },
 });
 
+// Root — API info
+app.get('/', (req, res) => {
+  res.json({
+    name: 'TaskFlow API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: 'GET /healthz',
+      auth: 'POST /api/auth/register  |  POST /api/auth/login  |  POST /api/auth/logout',
+      tasks: 'GET /api/tasks  |  POST /api/tasks  |  GET /api/tasks/:id',
+    },
+  });
+});
+
 // Health check — verifies DB connectivity
 app.get('/healthz', async (req, res) => {
   try {
