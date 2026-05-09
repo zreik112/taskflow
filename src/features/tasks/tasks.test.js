@@ -1,11 +1,12 @@
 require('dotenv').config();
+process.env.JWT_SECRET = 'test-secret-do-not-use-in-production';
+
 const request = require('supertest');
 const { v4: uuidv4 } = require('uuid');
 const knex = require('knex');
 const knexConfig = require('../../../knexfile');
-
-// src/app.js does not exist yet — tests will fail at this import (Red step)
 const app = require('../../app');
+const { cookieHeader } = require('../../helpers/test-auth');
 
 const db = knex(knexConfig.test);
 
@@ -87,7 +88,7 @@ describe('POST /api/tasks', () => {
 
     const res = await request(app)
       .post('/api/tasks')
-      .set('X-User-Id', user1.id)
+      .set('Cookie', cookieHeader(user1))
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -107,7 +108,7 @@ describe('POST /api/tasks', () => {
     expect(record.title).toBe(payload.title);
   });
 
-  test('2. unauthorized — missing X-User-Id returns 401', async () => {
+  test('2. unauthorized — missing cookie returns 401', async () => {
     const res = await request(app)
       .post('/api/tasks')
       .send({ project_id: project1.id, title: 'Some task' });
@@ -118,7 +119,7 @@ describe('POST /api/tasks', () => {
   test('3. invalid payload — missing title returns 422 with fields', async () => {
     const res = await request(app)
       .post('/api/tasks')
-      .set('X-User-Id', user1.id)
+      .set('Cookie', cookieHeader(user1))
       .send({ project_id: project1.id });
 
     expect(res.status).toBe(422);
@@ -131,7 +132,7 @@ describe('POST /api/tasks', () => {
     // user1 is in org1 but project2 belongs to org2
     const res = await request(app)
       .post('/api/tasks')
-      .set('X-User-Id', user1.id)
+      .set('Cookie', cookieHeader(user1))
       .send({ project_id: project2.id, title: 'Sneaky task' });
 
     expect(res.status).toBe(404);
@@ -160,7 +161,7 @@ describe('GET /api/tasks/:id', () => {
   test('5. happy path — returns 200 with task', async () => {
     const res = await request(app)
       .get(`/api/tasks/${seededTask.id}`)
-      .set('X-User-Id', user1.id);
+      .set('Cookie', cookieHeader(user1));
 
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(seededTask.id);
@@ -168,7 +169,7 @@ describe('GET /api/tasks/:id', () => {
     expect(res.body.organization_id).toBe(org1.id);
   });
 
-  test('6. unauthorized — missing X-User-Id returns 401', async () => {
+  test('6. unauthorized — missing cookie returns 401', async () => {
     const res = await request(app).get(`/api/tasks/${seededTask.id}`);
     expect(res.status).toBe(401);
   });
@@ -176,7 +177,7 @@ describe('GET /api/tasks/:id', () => {
   test('7. not found — non-existent UUID returns 404', async () => {
     const res = await request(app)
       .get(`/api/tasks/${uuidv4()}`)
-      .set('X-User-Id', user1.id);
+      .set('Cookie', cookieHeader(user1));
 
     expect(res.status).toBe(404);
   });
@@ -198,7 +199,7 @@ describe('GET /api/tasks/:id', () => {
     // user1 (org1) tries to access org2's task — must get 404, not 403
     const res = await request(app)
       .get(`/api/tasks/${org2Task.id}`)
-      .set('X-User-Id', user1.id);
+      .set('Cookie', cookieHeader(user1));
 
     expect(res.status).toBe(404);
   });

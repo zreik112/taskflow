@@ -71,6 +71,18 @@ TaskFlow is a multi-tenant task management SaaS for teams of 5–50 people: each
 
 ---
 
+## Security Rules
+
+1. JWT tokens are stored exclusively in httpOnly cookies — never in localStorage, sessionStorage, or a JSON response body.
+2. Passwords are hashed with bcrypt at a cost factor of 12 (controlled via the `BCRYPT_ROUNDS` env var; set to 1 in test environments to keep tests fast).
+3. Auth endpoints (`/api/auth/*`) are rate-limited to 5 requests per 15 minutes per IP.
+4. Every request body is validated with Joi before it reaches the controller — no raw `req.body` access in controllers.
+5. Helmet is applied globally in `app.js` to set secure HTTP response headers on every route.
+6. CORS is configured with an explicit allowlist via the `CORS_ORIGIN` env var — wildcard `*` is never used in production.
+7. No credentials, secrets, or API keys appear in code. All sensitive values are loaded exclusively from environment variables.
+
+---
+
 ## Always-On Behaviors
 
 1. Read CLAUDE.md at the start of every conversation before generating any code.

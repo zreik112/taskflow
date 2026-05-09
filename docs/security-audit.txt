@@ -1,0 +1,43 @@
+TaskFlow Security Audit — Checkpoint 2
+Generated: 2026-05-09
+Tool: npm audit (npm v10)
+
+═══════════════════════════════════════════════════════════════
+npm audit
+═══════════════════════════════════════════════════════════════
+
+found 0 vulnerabilities
+
+All 427 packages audited. No known vulnerabilities detected.
+
+Note: bcrypt was upgraded from v5.1.1 to v6.0.0 during this
+checkpoint to resolve 3 high-severity vulnerabilities in the
+transitively-depended-on `tar` and `@mapbox/node-pre-gyp`
+packages (CVE: GHSA-34x7-hfp2-rc4v, GHSA-8qq5-rm4j-mr97,
+GHSA-83g3-92jg-28cx, GHSA-qffp-2rhf-9h96, GHSA-9ppj-qmqm-q256,
+GHSA-r6q2-hw4h-h46w).
+
+═══════════════════════════════════════════════════════════════
+Security Controls Implemented (Checkpoint 2)
+═══════════════════════════════════════════════════════════════
+
+[PASS] JWT stored in httpOnly cookies only (never localStorage)
+[PASS] bcrypt cost factor 12 in production (BCRYPT_ROUNDS env var)
+[PASS] Rate limiting on /api/auth/* — 5 req / 15 min / IP
+[PASS] Helmet security headers applied globally
+[PASS] CORS allowlist via CORS_ORIGIN env var (no wildcard *)
+[PASS] All inputs validated with Joi before controller
+[PASS] No credentials in source code (all via env vars)
+[PASS] Cross-tenant resource access returns 404 (no 403 leak)
+[PASS] Passwords never returned in API responses
+[PASS] Non-root user in Docker container
+[PASS] .env excluded from git; only .env.example tracked
+
+═══════════════════════════════════════════════════════════════
+Remaining / Future Work
+═══════════════════════════════════════════════════════════════
+
+[ ] Add refresh token rotation (15-min access token window is short)
+[ ] OWASP ZAP scan after deployment
+[ ] Add CSP report-uri endpoint for monitoring violations
+[ ] Consider adding gitleaks pre-commit hook

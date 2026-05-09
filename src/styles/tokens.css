@@ -9,6 +9,7 @@
   --color-accent-hover: #b3911f;
   --color-success: #2e7d32;
   --color-error: #b23a48;
+  --color-error-bg: #fff0f2;
   --color-warning: #d97706;
 
   /* Status badge colors */
@@ -57,4 +58,8 @@
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  /* Layout */
+  --layout-form-max-width: 520px;
+  --layout-meta-label-min-width: 72px;
 }

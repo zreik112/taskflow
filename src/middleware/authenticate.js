@@ -1,22 +1,32 @@
-// Mocked authentication for Checkpoint 1.
-// Reads X-User-Id header and looks up the user in DB.
-// Will be replaced with proper JWT auth in Session 6.
+const jwt = require('jsonwebtoken');
 const db = require('../db');
 
+const USER_COLUMNS = ['id', 'organization_id', 'email', 'first_name', 'last_name', 'role'];
+
 module.exports = async function authenticate(req, res, next) {
-  const userId = req.header('X-User-Id');
-  if (!userId) {
-    return next({ status: 401, error: 'unauthorized', message: 'Missing X-User-Id header' });
+  const token = req.cookies?.token;
+  if (!token) {
+    return next({ status: 401, error: 'unauthorized', message: 'Not authenticated' });
   }
 
   try {
-    const user = await db('users').where({ id: userId }).whereNull('deleted_at').first();
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await db('users')
+      .select(USER_COLUMNS)
+      .where({ id: payload.sub })
+      .whereNull('deleted_at')
+      .first();
+
     if (!user) {
-      return next({ status: 401, error: 'unauthorized', message: 'Invalid user' });
+      return next({ status: 401, error: 'unauthorized', message: 'User not found' });
     }
+
     req.user = user;
     next();
   } catch (err) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return next({ status: 401, error: 'unauthorized', message: 'Invalid or expired token' });
+    }
     next(err);
   }
 };
