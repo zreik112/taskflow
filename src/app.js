@@ -118,7 +118,16 @@ app.use(errorHandler);
 
 if (require.main === module) {
   const PORT = process.env.PORT || 4000;
-  app.listen(PORT, () => logger.info(`TaskFlow API listening on port ${PORT}`));
+  const knex = require('./db');
+  knex.migrate
+    .latest()
+    .then(() => {
+      app.listen(PORT, () => logger.info(`TaskFlow API listening on port ${PORT}`));
+    })
+    .catch((err) => {
+      logger.error({ err }, 'Migration failed — shutting down');
+      process.exit(1);
+    });
 }
 
 module.exports = app;
